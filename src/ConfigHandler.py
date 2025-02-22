@@ -2,14 +2,14 @@ import os
 import configparser
 
 def configCheck():
-    config_file = "Config.ini"
+    global config_file
+    config_file = os.path.join(os.path.dirname(__file__), "../Config.ini")
     if os.path.isfile(config_file):
         return True
     else:
         return False
 
 def getConfig(section, key):
-    config_file = "Config.ini"
     config = configparser.ConfigParser()
     config.read(config_file)
 
