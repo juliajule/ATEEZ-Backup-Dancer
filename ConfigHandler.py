@@ -14,7 +14,7 @@ def getConfig(section, key):
     config.read(config_file)
 
     if section in config:
-        return config[section].get(key, None)
+        return config[section].get(key, None).strip('"').strip("'")
     else:
         return None
 
