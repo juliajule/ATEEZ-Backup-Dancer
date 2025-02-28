@@ -1,2 +1,18 @@
 [MAIN]
 type = rsync
+DeleteOnDestination = true
+StandardArguments = av
+
+[SOURCE]
+remote = false
+Hostname = name
+user = user
+Port = 22
+Path = /home/user/temp
+
+[DESTINATION]
+remote = false
+Hostname = name
+user = user
+Port = 22
+Path = /Users/user/Desktop/

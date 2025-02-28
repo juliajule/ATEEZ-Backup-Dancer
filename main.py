@@ -3,6 +3,7 @@
 from src.ConfigHandler import *
 from src.Helpers import *
 from src.BackUpHelper import *
+from src.SimpleRsyncHandler import *
 
 version = 0.1
 
@@ -36,6 +37,8 @@ for job in jobs:
     outputPrint(f"Start Job {jobCounter} ({job})")
     jobType = getJobInfo(job, "MAIN", "type")
     outputPrint(f" Job Type:     {jobType}")
+    if jobType == "rsync":
+        rsyncJob(job)
     jobCounter += 1
 
 

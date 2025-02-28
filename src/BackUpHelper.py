@@ -18,6 +18,8 @@ def getJobInfo(file, section, key):
     config.read(job_file)
 
     if section in config:
-        return config[section].get(key, None).strip('"').strip("'")
+        value = config[section].get(key, None)
+        if value is not None:
+            return value.strip('"').strip("'")
     else:
         return None

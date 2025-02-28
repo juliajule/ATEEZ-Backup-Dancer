@@ -28,3 +28,6 @@ def exitOnError(message):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"[{timestamp}] -- \033[1;31m{message}\033[0m")
     exit(1)
+
+def str_to_bool(s):
+    return s.strip().lower() == "true"

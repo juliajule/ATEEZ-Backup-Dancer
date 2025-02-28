@@ -1,2 +1,2 @@
 [MAIN]
-type = rsync
+type = fdp
