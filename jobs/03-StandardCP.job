@@ -1,0 +1,6 @@
+[MAIN]
+type = cp
+source = Ordner
+destination = Ordner
+onDuplicate = overwrite
+# Optionen: skip, overwrite, backup

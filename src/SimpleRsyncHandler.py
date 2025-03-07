@@ -1,11 +1,17 @@
 from src.BackUpHelper import *
 from src.Helpers import *
+from src.ConfigHandler import *
 import subprocess
 import shlex
 
 FORBIDDEN_ARGUMENTS = ["--remove-source-files", "--recursive"]
 
 def rsyncJob(job):
+
+    rsync = getConfig("REQUIREMENT", "rsync")
+    debugPrint(f"rsync: {rsync}")
+    check_path_valid(rsync) or exitOnError("rsync Path in Config does not exist")
+
     #Alle Informationen aus der Konfig
     jobDeleteOnDestination = getJobInfo(job, "MAIN", "DeleteOnDestination")
     jobStandardArguments = getJobInfo(job, "MAIN", "StandardArguments")
@@ -22,6 +28,9 @@ def rsyncJob(job):
 
     #Logic Checks
     jobStandardArguments = validate_job_config(jobDeleteOnDestination, jobStandardArguments, jobSourceRemote, jobDestinationRemote, jobSourceHostname, jobSourceUser, jobDestinationHostname, jobDestinationUser)
+
+    if jobStandardArguments == "Fail":
+        return
 
     rsyncLine = ["rsync"]
 
@@ -80,7 +89,6 @@ def validate_job_config(jobDeleteOnDestination, jobStandardArguments, jobSourceR
         else:
             cleaned_args.append(arg)
 
-
     if jobDeleteOnDestination and "--delete" in args_list:
         outputPrint("Note: '--delete' removed from StandardArguments because DeleteOnDestination=true is set.")
         cleaned_args = [arg for arg in args_list if arg != "--delete"]
@@ -88,12 +96,12 @@ def validate_job_config(jobDeleteOnDestination, jobStandardArguments, jobSourceR
     if jobSourceRemote:
         if not jobSourceHostname or not jobSourceUser:
             outputPrint(f"Error: SOURCE is remote, but hostname or user is missing.")
-            return
+            return "Fail"
 
     if jobDestinationRemote:
         if not jobDestinationHostname or not jobDestinationUser:
             outputPrint(f"Error: DESTINATION is remote, but hostname or user is missing.")
-            return
+            return "Fail"
 
     outputPrint(f"Job validated.")
     return cleaned_args
