@@ -1,0 +1,16 @@
+[MAIN]
+type = sftp
+
+[SOURCE]
+remote = true
+Hostname = homeserv
+user = jule
+Port = 22
+Path = /platte1/share/temp
+
+[DESTINATION]
+remote = false
+Hostname = host
+user = user
+Port = 22
+Path = /Users/juliapuhlmann/Documents/temp

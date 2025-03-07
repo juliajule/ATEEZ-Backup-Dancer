@@ -1,18 +1,18 @@
 [MAIN]
 type = rsync
 DeleteOnDestination = true
-StandardArguments = av
+StandardArguments = -av --delete --recursive
 
 [SOURCE]
 remote = false
-Hostname = name
+Hostname = host
 user = user
 Port = 22
-Path = /home/user/temp
+Path = path
 
 [DESTINATION]
 remote = false
 Hostname = name
 user = user
 Port = 22
-Path = /Users/user/Desktop/
+Path = path
