@@ -15,23 +15,20 @@ def insertJobLog(job_name, job_type, start_time, end_time, files_copied, total_s
     conn.commit()
     conn.close()
 
-import sqlite3
-
 def getAllJobs(limit=20):
-
-    conn = sqlite3.connect("job_logs.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT id, job_name, job_type, start_time, end_time, file_count, total_size, error_message
+        SELECT id, job_name, job_type, start_time, end_time, files_copied, total_size, errors
         FROM job_logs
         WHERE end_time IS NULL OR end_time = (SELECT MAX(end_time) FROM job_logs WHERE end_time IS NOT NULL)
         ORDER BY start_time DESC
     """)
     current_and_last_jobs = cursor.fetchall()
 
-    cursor.execute(f"""
-        SELECT id, job_name, job_type, start_time, end_time, file_count, total_size, error_message
+    cursor.execute("""
+        SELECT id, job_name, job_type, start_time, end_time, files_copied, total_size, errors
         FROM job_logs
         WHERE end_time IS NOT NULL
         ORDER BY end_time DESC

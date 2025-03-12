@@ -1,16 +1,17 @@
 [MAIN]
 type = sftp
+active = true
 
 [SOURCE]
 remote = true
-Hostname = homeserv
-user = jule
+Hostname = host
+user = user
 Port = 22
-Path = /platte1/share/temp
+Path = path
 
 [DESTINATION]
 remote = false
 Hostname = host
 user = user
 Port = 22
-Path = /Users/juliapuhlmann/Documents/temp
+Path = path
