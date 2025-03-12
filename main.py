@@ -30,12 +30,12 @@ for job in jobs:
     outputPrint(f"Start Job {jobCounter} ({job})")
     jobType = getJobInfo(job, "MAIN", "type")
     outputPrint(f" Job Type:     {jobType}")
-    #if jobType == "rsync":
-        #rsyncJob(job)
+    if jobType == "rsync":
+        rsyncJob(job)
     if jobType == "sftp":
         sftpJob(job)
-    #if jobType == "cp":
-        #cpJob(job)
+    if jobType == "cp":
+        cpJob(job)
     jobCounter += 1
 
 

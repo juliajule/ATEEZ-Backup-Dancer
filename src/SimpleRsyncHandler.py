@@ -1,18 +1,22 @@
 from src.BackUpHelper import *
 from src.Helpers import *
 from src.ConfigHandler import *
+from src.DatabaseHandler import insertJobLog
 import subprocess
 import shlex
+import datetime
+import re
 
 FORBIDDEN_ARGUMENTS = ["--remove-source-files", "--recursive"]
 
 def rsyncJob(job):
+    start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     rsync = getConfig("REQUIREMENT", "rsync")
     debugPrint(f"rsync: {rsync}")
     check_path_valid(rsync) or exitOnError("rsync Path in Config does not exist")
 
-    #Alle Informationen aus der Konfig
+    # Alle Informationen aus der Konfig
     jobDeleteOnDestination = getJobInfo(job, "MAIN", "DeleteOnDestination")
     jobStandardArguments = getJobInfo(job, "MAIN", "StandardArguments")
     jobSourceRemote = str_to_bool(getJobInfo(job, "SOURCE", "remote"))
@@ -30,9 +34,10 @@ def rsyncJob(job):
     jobStandardArguments = validate_job_config(jobDeleteOnDestination, jobStandardArguments, jobSourceRemote, jobDestinationRemote, jobSourceHostname, jobSourceUser, jobDestinationHostname, jobDestinationUser)
 
     if jobStandardArguments == "Fail":
+        insertJobLog(job, "rsync", start_time, None, 0, 0, "Job-Konfiguration fehlgeschlagen")
         return
 
-    rsyncLine = ["rsync"]
+    rsyncLine = ["rsync", "--stats"]
 
     if jobStandardArguments:
         rsyncLine += jobStandardArguments
@@ -61,16 +66,31 @@ def rsyncJob(job):
         bufsize=1
     )
 
+    copied_files = 0
+    total_size = 0
+
     for line in process.stdout:
         outputPrint(line.strip())
 
+        match_files = re.search(r"Number of files transferred:\s+(\d+)", line)
+        if match_files:
+            copied_files = int(match_files.group(1))
+
+        match_size = re.search(r"Total file size:\s+([\d,]+) bytes", line)
+        if match_size:
+            total_size = int(match_size.group(1).replace(",", ""))
+
     process.stdout.close()
     returncode = process.wait()
+    end_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     if returncode == 0:
         outputPrint("Rsync succeeded.")
+        insertJobLog(job, "rsync", start_time, end_time, copied_files, total_size, None)
     else:
-        outputPrint(f"Error with Code {returncode}.")
+        error_message = f"Error with Code {returncode}."
+        outputPrint(error_message)
+        insertJobLog(job, "rsync", start_time, end_time, copied_files, total_size, error_message)
 
 
 def validate_job_config(jobDeleteOnDestination, jobStandardArguments, jobSourceRemote, jobDestinationRemote, jobSourceHostname, jobSourceUser, jobDestinationHostname, jobDestinationUser):

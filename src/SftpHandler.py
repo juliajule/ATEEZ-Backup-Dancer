@@ -1,10 +1,14 @@
 from src.BackUpHelper import *
 from src.Helpers import *
 from src.ConfigHandler import *
+from src.DatabaseHandler import insertJobLog
 import subprocess
 from io import StringIO
+import re
+import datetime
 
-def sftpJob (job):
+def sftpJob(job):
+    start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     sftp = getConfig("REQUIREMENT", "sftp")
     debugPrint(f"sftp: {sftp}")
@@ -25,7 +29,7 @@ def sftpJob (job):
         outputPrint("Error: Both SOURCE and DESTINATION are remote, which is not supported.")
         return
 
-    scpLine = ["scp", "-r"]
+    scpLine = ["scp", "-r", "-v"]
 
     if jobSourceRemote:
         scpLine += ["-P", jobSourcePort]
@@ -47,6 +51,8 @@ def sftpJob (job):
     outputPrint(f"Running: {' '.join(scpLine)}")
 
     full_output = StringIO()
+    copied_files = 0
+    total_size = 0
 
     process = subprocess.Popen(
         scpLine,
@@ -57,16 +63,39 @@ def sftpJob (job):
     )
 
     for line in process.stdout:
+        if not line.strip():
+            continue
+        if "debug1" in line:
+            continue
+
         outputPrint(line.strip())
         full_output.write(line)
+
+# Geht noch nicht korrekt
+        if re.search(r"^.*->.*", line):
+            copied_files += 1
+        size_match = re.search(r"\((\d+) bytes\)", line)
+        if size_match:
+            total_size += int(size_match.group(1))
 
     process.stdout.close()
     returncode = process.wait()
 
+    end_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
     if returncode == 0:
         outputPrint("SFTP (via SCP) succeeded.")
+        error_message = None
     else:
-        outputPrint(f"Error with Code {returncode}.")
+        error_message = f"Error with Code {returncode}."
+        outputPrint(error_message)
 
-    outputPrint("\n===== Full SCP Output =====")
-    outputPrint(full_output.getvalue())
+    insertJobLog(
+        job_name=job,
+        job_type="sftp",
+        start_time=start_time,
+        end_time=end_time,
+        files_copied=copied_files,
+        total_size=total_size,
+        errors=error_message
+    )

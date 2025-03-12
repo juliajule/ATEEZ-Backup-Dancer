@@ -1,23 +1,33 @@
 from src.BackUpHelper import *
 from src.Helpers import *
+from src.DatabaseHandler import insertJobLog
 import os
 import shutil
+import datetime
 
 def cpJob(job):
+    start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     jobSource = getJobInfo(job, "MAIN", "source")
     jobDestination = getJobInfo(job, "MAIN", "destination")
     onDuplicates = getJobInfo(job, "MAIN", "onDuplicate")
 
     if not os.path.exists(jobSource):
-        outputPrint(f"Fehler: Quellpfad '{jobSource}' existiert nicht.")
+        error_message = f"Fehler: Quellpfad '{jobSource}' existiert nicht."
+        outputPrint(error_message)
+        insertJobLog(job, "copy", start_time, None, 0, 0, error_message)
         return
 
     if not os.path.exists(jobDestination):
-        outputPrint(f"Fehler: Zielpfad '{jobDestination}' existiert nicht.")
+        error_message = f"Fehler: Zielpfad '{jobDestination}' existiert nicht."
+        outputPrint(error_message)
+        insertJobLog(job, "copy", start_time, None, 0, 0, error_message)
         return
 
     outputPrint(f"Starte Kopiervorgang von {jobSource} nach {jobDestination}")
+
+    copied_files = 0
+    total_size = 0
 
     for root, _, files in os.walk(jobSource):
         rel_path = os.path.relpath(root, jobSource)
@@ -41,10 +51,18 @@ def cpJob(job):
                 elif onDuplicates == "overwrite":
                     outputPrint(f"Überschreibe Datei: {dest_file}")
                 else:
-                    outputPrint(f"Unbekannte OnDuplicate-Option: {onDuplicates}")
+                    error_message = f"Unbekannte OnDuplicate-Option: {onDuplicates}"
+                    outputPrint(error_message)
+                    insertJobLog(job, "copy", start_time, None, copied_files, total_size, error_message)
                     return
 
             shutil.copy2(src_file, dest_file)
+            copied_files += 1
+            total_size += os.path.getsize(src_file)
             outputPrint(f"Kopiert: {src_file} → {dest_file}")
 
+    end_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
     outputPrint("Kopiervorgang abgeschlossen.")
+
+    insertJobLog(job, "copy", start_time, end_time, copied_files, total_size, None)
