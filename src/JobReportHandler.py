@@ -36,8 +36,8 @@ def generateHtml(job):
 
     for job in current_jobs:
         job_id, name, job_type, start, end, file_count, size, error = job
-        duration = format_duration(start, end)
-        speed = calculate_speed(size, start, end) if end else "-"
+        duration = formatDuration(start, end)
+        speed = calculateSpeed(size, start, end) if end else "-"
         status_text = "" if not error else f"Fehler: {error}"
         status_icon = "success.png" if error is None else "error.png"
         size_display = f"{size / 1024 / 1024 / 1024:.2f} GB" if size >= 1024 * 1024 * 1024 else f"{size / 1024 / 1024:.2f} MB"
@@ -75,8 +75,8 @@ def generateHtml(job):
 
     for job in recent_jobs:
         job_id, name, job_type, start, end, file_count, size, error = job
-        duration = format_duration(start, end)
-        speed = calculate_speed(size, start, end)
+        duration = formatDuration(start, end)
+        speed = calculateSpeed(size, start, end)
         status_text = "" if not error else f"Fehler: {error}"
         status_icon = "success.png" if error is None else "error.png"
         size_display = f"{size / 1024 / 1024 / 1024:.2f} GB" if size >= 1024 * 1024 * 1024 else f"{size / 1024 / 1024:.2f} MB"
@@ -106,7 +106,7 @@ def generateHtml(job):
 
     outputPrint(f"HTML-Datei wurde erfolgreich erstellt: {html_file}")
 
-def calculate_speed(size, start, end):
+def calculateSpeed(size, start, end):
     try:
         start_dt = datetime.strptime(start, "%Y-%m-%d %H:%M:%S")
         end_dt = datetime.strptime(end, "%Y-%m-%d %H:%M:%S")
@@ -115,7 +115,7 @@ def calculate_speed(size, start, end):
     except:
         return "-"
 
-def format_duration(start, end):
+def formatDuration(start, end):
     if not end:
         return "-"
 

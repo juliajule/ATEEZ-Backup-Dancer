@@ -12,14 +12,14 @@ def sftpJob(job):
 
     sftp = getConfig("REQUIREMENT", "sftp")
     debugPrint(f"sftp: {sftp}")
-    check_path_valid(sftp) or exitOnError("sftp Path in Config does not exist")
+    checkPathValid(sftp) or exitOnError("sftp Path in Config does not exist")
 
-    jobSourceRemote = str_to_bool(getJobInfo(job, "SOURCE", "remote"))
+    jobSourceRemote = stringToBool(getJobInfo(job, "SOURCE", "remote"))
     jobSourceHostname = getJobInfo(job, "SOURCE", "Hostname")
     jobSourceUser = getJobInfo(job, "SOURCE", "user")
     jobSourcePort = getJobInfo(job, "SOURCE", "Port")
     jobSourcePath = getJobInfo(job, "SOURCE", "Path")
-    jobDestinationRemote = str_to_bool(getJobInfo(job, "DESTINATION", "remote"))
+    jobDestinationRemote = stringToBool(getJobInfo(job, "DESTINATION", "remote"))
     jobDestinationHostname = getJobInfo(job, "DESTINATION", "Hostname")
     jobDestinationUser = getJobInfo(job, "DESTINATION", "user")
     jobDestinationPort = getJobInfo(job, "DESTINATION", "Port")

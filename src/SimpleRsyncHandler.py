@@ -14,24 +14,24 @@ def rsyncJob(job):
 
     rsync = getConfig("REQUIREMENT", "rsync")
     debugPrint(f"rsync: {rsync}")
-    check_path_valid(rsync) or exitOnError("rsync Path in Config does not exist")
+    checkPathValid(rsync) or exitOnError("rsync Path in Config does not exist")
 
     # Alle Informationen aus der Konfig
     jobDeleteOnDestination = getJobInfo(job, "MAIN", "DeleteOnDestination")
     jobStandardArguments = getJobInfo(job, "MAIN", "StandardArguments")
-    jobSourceRemote = str_to_bool(getJobInfo(job, "SOURCE", "remote"))
+    jobSourceRemote = stringToBool(getJobInfo(job, "SOURCE", "remote"))
     jobSourceHostname = getJobInfo(job, "SOURCE", "Hostname")
     jobSourceUser = getJobInfo(job, "SOURCE", "user")
     jobSourcePort = getJobInfo(job, "SOURCE", "Port")
     jobSourcePath = getJobInfo(job, "SOURCE", "Path")
-    jobDestinationRemote = str_to_bool(getJobInfo(job, "DESTINATION", "remote"))
+    jobDestinationRemote = stringToBool(getJobInfo(job, "DESTINATION", "remote"))
     jobDestinationHostname = getJobInfo(job, "DESTINATION", "Hostname")
     jobDestinationUser = getJobInfo(job, "DESTINATION", "user")
     jobDestinationPort = getJobInfo(job, "DESTINATION", "Port")
     jobDestionationPath = getJobInfo(job, "DESTINATION", "Path")
 
     #Logic Checks
-    jobStandardArguments = validate_job_config(jobDeleteOnDestination, jobStandardArguments, jobSourceRemote, jobDestinationRemote, jobSourceHostname, jobSourceUser, jobDestinationHostname, jobDestinationUser)
+    jobStandardArguments = validateJobConfig(jobDeleteOnDestination, jobStandardArguments, jobSourceRemote, jobDestinationRemote, jobSourceHostname, jobSourceUser, jobDestinationHostname, jobDestinationUser)
 
     if jobStandardArguments == "Fail":
         insertJobLog(job, "rsync", start_time, None, 0, 0, "Job-Konfiguration fehlgeschlagen")
@@ -95,7 +95,7 @@ def rsyncJob(job):
         insertJobLog(job, "rsync", start_time, end_time, copied_files, total_size, error_message)
 
 
-def validate_job_config(jobDeleteOnDestination, jobStandardArguments, jobSourceRemote, jobDestinationRemote, jobSourceHostname, jobSourceUser, jobDestinationHostname, jobDestinationUser):
+def validateJobConfig(jobDeleteOnDestination, jobStandardArguments, jobSourceRemote, jobDestinationRemote, jobSourceHostname, jobSourceUser, jobDestinationHostname, jobDestinationUser):
 
     if jobSourceRemote and jobDestinationRemote:
         debugPrint(f"{jobSourceRemote} -> {jobDestinationRemote}")
