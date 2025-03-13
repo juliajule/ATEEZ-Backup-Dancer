@@ -1,50 +1,58 @@
-import sqlite3
 from src.BackUpHelper import *
 from src.DatabaseHandler import getAllJobs
 from src.Helpers import outputPrint
-
+from datetime import datetime
 
 def generateHtml(job):
     html_file = getJobInfo(job, "MAIN", "path")
 
     current_jobs, recent_jobs = getAllJobs()
 
-    html_content = """
+    html_content = f"""
     <!DOCTYPE html>
     <html lang="de">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Backup Jobs Übersicht</title>
+        <link rel="stylesheet" href="style.css">
     </head>
     <body>
         <h1>Backup Jobs Übersicht</h1>
-        <h2>Aktuelle Jobs</h2>
+        <h2>Jobs vom {datetime.now().strftime('%d.%m.%Y')}</h2>
         <table>
             <tr>
-                <th>Job Name</th>
-                <th>Art</th>
+                <th>Name</th>
+                <th>Typ</th>
+                <th>Startzeit</th>
+                <th>Endzeit</th>
                 <th>Dauer</th>
                 <th>Dateien</th>
                 <th>Größe</th>
+                <th>Geschwindigkeit</th>
                 <th>Status</th>
             </tr>
     """
 
     for job in current_jobs:
-        job_id, job_name, job_type, start_time, end_time, file_count, total_size, error_message = job
-        duration = "-" if not end_time else str(round((sqlite3.datetime.datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S") - sqlite3.datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")).total_seconds() / 60, 2)) + " min"
-        status_icon = "success.png" if error_message is None else "error.png"
-        status_text = "Erfolgreich" if error_message is None else error_message
+        job_id, name, job_type, start, end, file_count, size, error = job
+        duration = format_duration(start, end)
+        speed = calculate_speed(size, start, end) if end else "-"
+        status_text = "" if not error else f"Fehler: {error}"
+        status_icon = "success.png" if error is None else "error.png"
+        size_display = f"{size / 1024 / 1024 / 1024:.2f} GB" if size >= 1024 * 1024 * 1024 else f"{size / 1024 / 1024:.2f} MB"
 
         html_content += f"""
             <tr>
-                <td>{job_name}</td>
+                <td>{name.split('-')[-1].replace('.job', '')}</td>
                 <td>{job_type}</td>
+                <td>{start}</td>
+                <td>{end if end else '- '}</td>
                 <td>{duration}</td>
                 <td>{file_count}</td>
-                <td>{total_size} KB</td>
-                <td><img src='{status_icon}' alt='Status'> {status_text}</td>
+                <td>{size_display}</td>
+                <td>{speed}</td>
+                <td><img src='{status_icon}' class="status-icon" alt='Status'> {status_text}</td>
             </tr>
         """
 
@@ -53,29 +61,37 @@ def generateHtml(job):
         <h2>Vergangene Jobs</h2>
         <table>
             <tr>
-                <th>Job Name</th>
-                <th>Art</th>
+                <th>Name</th>
+                <th>Typ</th>
+                <th>Startzeit</th>
+                <th>Endzeit</th>
                 <th>Dauer</th>
                 <th>Dateien</th>
                 <th>Größe</th>
+                <th>Geschwindigkeit</th>
                 <th>Status</th>
             </tr>
     """
 
     for job in recent_jobs:
-        job_id, job_name, job_type, start_time, end_time, file_count, total_size, error_message = job
-        duration = "-" if not end_time else str(round((sqlite3.datetime.datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S") - sqlite3.datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")).total_seconds() / 60, 2)) + " min"
-        status_icon = "success.png" if error_message is None else "error.png"
-        status_text = "Erfolgreich" if error_message is None else error_message
+        job_id, name, job_type, start, end, file_count, size, error = job
+        duration = format_duration(start, end)
+        speed = calculate_speed(size, start, end)
+        status_text = "" if not error else f"Fehler: {error}"
+        status_icon = "success.png" if error is None else "error.png"
+        size_display = f"{size / 1024 / 1024 / 1024:.2f} GB" if size >= 1024 * 1024 * 1024 else f"{size / 1024 / 1024:.2f} MB"
 
         html_content += f"""
             <tr>
-                <td>{job_name}</td>
+                <td>{name.split('-')[-1].replace('.job', '')}</td>
                 <td>{job_type}</td>
+                <td>{start}</td>
+                <td>{end}</td>
                 <td>{duration}</td>
                 <td>{file_count}</td>
-                <td>{total_size} KB</td>
-                <td><img src='{status_icon}' alt='Status'> {status_text}</td>
+                <td>{size_display}</td>
+                <td>{speed}</td>
+                <td><img src='{status_icon}' class="status-icon" alt='Status'> {status_text}</td>
             </tr>
         """
 
@@ -89,3 +105,29 @@ def generateHtml(job):
         file.write(html_content)
 
     outputPrint(f"HTML-Datei wurde erfolgreich erstellt: {html_file}")
+
+def calculate_speed(size, start, end):
+    try:
+        start_dt = datetime.strptime(start, "%Y-%m-%d %H:%M:%S")
+        end_dt = datetime.strptime(end, "%Y-%m-%d %H:%M:%S")
+        duration = (end_dt - start_dt).total_seconds()
+        return f"{(size / duration / 1024 / 1024):.2f} MB/s" if duration > 0 else "-"
+    except:
+        return "-"
+
+def format_duration(start, end):
+    if not end:
+        return "-"
+
+    duration_seconds = (datetime.strptime(end, "%Y-%m-%d %H:%M:%S") - datetime.strptime(start, "%Y-%m-%d %H:%M:%S")).total_seconds()
+
+    hours = int(duration_seconds // 3600)
+    minutes = int((duration_seconds % 3600) // 60)
+    seconds = int(duration_seconds % 60)
+
+    if hours > 0:
+        return f"{hours}h {minutes}m {seconds}s"
+    elif minutes > 0:
+        return f"{minutes}m {seconds}s"
+    else:
+        return f"{seconds}s"
