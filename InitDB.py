@@ -16,6 +16,8 @@ def initialize_database():
         end_time TEXT,
         files_copied INTEGER,
         total_size INTEGER,
+        target_folder_size INTEGER,
+        transfer_speed INTEGER,
         errors TEXT
     )
     ''')

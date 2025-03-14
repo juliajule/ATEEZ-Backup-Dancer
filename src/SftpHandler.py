@@ -53,6 +53,8 @@ def sftpJob(job):
     full_output = StringIO()
     copied_files = 0
     total_size = 0
+    target_folder_size = 0
+    transfer_speed = 0
 
     process = subprocess.Popen(
         scpLine,
@@ -90,12 +92,4 @@ def sftpJob(job):
         error_message = f"Error with Code {returncode}."
         outputPrint(error_message)
 
-    insertJobLog(
-        job_name=job,
-        job_type="sftp",
-        start_time=start_time,
-        end_time=end_time,
-        files_copied=copied_files,
-        total_size=total_size,
-        errors=error_message
-    )
+    insertJobLog(job, "sftp", start_time, end_time, copied_files, total_size, target_folder_size, transfer_speed, error_message)

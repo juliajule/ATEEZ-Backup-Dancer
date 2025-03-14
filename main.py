@@ -3,7 +3,6 @@
 from src.SimpleRsyncHandler import *
 from src.CpHandler import *
 from src.SftpHandler import *
-from src.JobReportHandler import *
 from src.MailHandler import *
 
 version = 0.1
@@ -50,10 +49,16 @@ for job in jobs:
     if jobType == "cp" and not jobActive:
         outputPrint("Skipping cp job")
         debugPrint(f"cp job is not activated in Job-File {job}")
-    if jobType == "jobReport":
+    if jobType == "jobReport" and jobActive:
         generateHtml(job)
+    if jobType == "jobReport" and not jobActive:
+        outputPrint("Skipping cp job")
+        debugPrint(f"cp job is not activated in Job-File {job}")
     if jobType == "mail" and jobActive:
         mailJob(job)
+    if jobType == "mail" and not jobActive:
+        outputPrint("Skipping mail job")
+        debugPrint(f"mail job is not activated in Job-File {job}")
     jobCounter += 1
     outputPrint("\n----")
 

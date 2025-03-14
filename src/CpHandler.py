@@ -15,19 +15,21 @@ def cpJob(job):
     if not os.path.exists(jobSource):
         error_message = f"Fehler: Quellpfad '{jobSource}' existiert nicht."
         outputPrint(error_message)
-        insertJobLog(job, "copy", start_time, None, 0, 0, error_message)
+        insertJobLog(job, "copy", start_time, None, 0, 0, 0, 0, error_message)
         return
 
     if not os.path.exists(jobDestination):
         error_message = f"Fehler: Zielpfad '{jobDestination}' existiert nicht."
         outputPrint(error_message)
-        insertJobLog(job, "copy", start_time, None, 0, 0, error_message)
+        insertJobLog(job, "copy", start_time, None, 0, 0, 0, 0, error_message)
         return
 
     outputPrint(f"Starte Kopiervorgang von {jobSource} nach {jobDestination}")
 
     copied_files = 0
     total_size = 0
+    target_folder_size = 0
+    transfer_speed = 0
 
     for root, _, files in os.walk(jobSource):
         rel_path = os.path.relpath(root, jobSource)
@@ -53,7 +55,7 @@ def cpJob(job):
                 else:
                     error_message = f"Unbekannte OnDuplicate-Option: {onDuplicates}"
                     outputPrint(error_message)
-                    insertJobLog(job, "copy", start_time, None, copied_files, total_size, error_message)
+                    insertJobLog(job, "copy", start_time, None, copied_files, total_size, target_folder_size, transfer_speed, error_message)
                     return
 
             shutil.copy2(src_file, dest_file)
@@ -65,4 +67,4 @@ def cpJob(job):
 
     outputPrint("Kopiervorgang abgeschlossen.")
 
-    insertJobLog(job, "copy", start_time, end_time, copied_files, total_size, None)
+    insertJobLog(job, "copy", start_time, end_time, copied_files, total_size, target_folder_size, transfer_speed, None)

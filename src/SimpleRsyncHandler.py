@@ -34,7 +34,7 @@ def rsyncJob(job):
     jobStandardArguments = validateJobConfig(jobDeleteOnDestination, jobStandardArguments, jobSourceRemote, jobDestinationRemote, jobSourceHostname, jobSourceUser, jobDestinationHostname, jobDestinationUser)
 
     if jobStandardArguments == "Fail":
-        insertJobLog(job, "rsync", start_time, None, 0, 0, "Job-Konfiguration fehlgeschlagen")
+        insertJobLog(job, "rsync", start_time, None, 0, 0, 0, 0, "Job-Konfiguration fehlgeschlagen")
         return
 
     rsyncLine = ["rsync", "--stats"]
@@ -70,6 +70,8 @@ def rsyncJob(job):
 
     copied_files = 0
     total_size = 0
+    target_folder_size = 0
+    transfer_speed = 18888
 
     for line in process.stdout:
         outputPrint(line.strip())
@@ -78,9 +80,17 @@ def rsyncJob(job):
         if match_files:
             copied_files = int(match_files.group(1))
 
-        match_size = re.search(r"Total file size:\s+([\d,]+) bytes", line)
+        match_size = re.search(r"Total transferred file size:\s+([\d,]+) bytes", line)
         if match_size:
             total_size = int(match_size.group(1).replace(",", ""))
+
+        match_files = re.search(r"Total file size:\s+(\d+)", line)
+        if match_files:
+            target_folder_size = int(match_files.group(1))
+
+        match_files = re.search(r"sent \s+(\d+) bytes  received \s+(\d+) bytes  \s+(\d+) bytes/sec", line)
+        if match_files:
+            transfer_speed = int(match_files.group(3))
 
     process.stdout.close()
     returncode = process.wait()
@@ -88,11 +98,11 @@ def rsyncJob(job):
 
     if returncode == 0:
         outputPrint("Rsync succeeded.")
-        insertJobLog(job, "rsync", start_time, end_time, copied_files, total_size, None)
+        insertJobLog(job, "rsync", start_time, end_time, copied_files, total_size, target_folder_size, transfer_speed, None)
     else:
         error_message = f"Error with Code {returncode}."
         outputPrint(error_message)
-        insertJobLog(job, "rsync", start_time, end_time, copied_files, total_size, error_message)
+        insertJobLog(job, "rsync", start_time, end_time, copied_files, total_size, target_folder_size, transfer_speed, error_message)
 
 
 def validateJobConfig(jobDeleteOnDestination, jobStandardArguments, jobSourceRemote, jobDestinationRemote, jobSourceHostname, jobSourceUser, jobDestinationHostname, jobDestinationUser):

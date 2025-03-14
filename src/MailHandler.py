@@ -2,10 +2,7 @@ import smtplib
 import socket
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from src.DatabaseHandler import *
 from src.Helpers import *
-from src.BackUpHelper import *
-from datetime import datetime
 from src.JobReportHandler import *
 
 
@@ -22,7 +19,7 @@ def mailJob(job):
     todays_jobs, _ = getAllJobs()
 
     subject = f"Back Up {datetime.now().strftime('%Y-%m-%d')}"
-    if any(job[7] for job in todays_jobs):
+    if any(job[9] for job in todays_jobs):
         subject += " - Error"
 
     html_content = f"""
@@ -52,19 +49,21 @@ def mailJob(job):
                 <th>Endzeit</th>
                 <th>Dauer</th>
                 <th>Dateien</th>
-                <th>Verarbeitete Daten</th>
+                <th>Total transferred file size</th>
+                <th>Total File Size</th>
                 <th>Geschwindigkeit</th>
                 <th>Status</th>
             </tr>
     """
 
     for job in todays_jobs:
-        job_id, name, job_type, start, end, file_count, size, error = job
+        job_id, name, job_type, start, end, file_count, size, target_folder_size, transfer_speed, error = job
         duration = formatDuration(start, end)
-        speed = calculateSpeed(size, start, end) if end else "-"
+        speed = calculateSpeed(size, start, end, transfer_speed) if end else "-"
         status_text = "Success" if not error else f"Fehler: {error}"
-        status_icon = "success.png" if error is None else "error.png"
+        status_icon = "✅" if error is None else "❌"
         size_display = f"{size / 1024 / 1024 / 1024:.2f} GB" if size >= 1024 * 1024 * 1024 else f"{size / 1024 / 1024:.2f} MB"
+        target_folder_size_display = f"{target_folder_size / 1024 / 1024 / 1024:.2f} GB" if target_folder_size >= 1024 * 1024 * 1024 else f"{target_folder_size / 1024 / 1024:.2f} MB"
 
         html_content += f"""
             <tr>
@@ -76,7 +75,8 @@ def mailJob(job):
                 <td>{file_count}</td>
                 <td>{size_display}</td>
                 <td>{speed}</td>
-                <td>{status_text}</td>
+                <td>{target_folder_size_display}</td>
+                <td>{status_icon} {status_text}</td>
             </tr>
         """
 

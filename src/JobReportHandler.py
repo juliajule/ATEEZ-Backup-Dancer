@@ -28,19 +28,21 @@ def generateHtml(job):
                 <th>Endzeit</th>
                 <th>Dauer</th>
                 <th>Dateien</th>
-                <th>Verarbeitete Daten</th>
+                <th>Total transferred file size</th>
+                <th>Total File Size</th>
                 <th>Geschwindigkeit</th>
                 <th>Status</th>
             </tr>
     """
 
     for job in current_jobs:
-        job_id, name, job_type, start, end, file_count, size, error = job
+        job_id, name, job_type, start, end, file_count, size, target_folder_size, transfer_speed, error = job
         duration = formatDuration(start, end)
-        speed = calculateSpeed(size, start, end) if end else "-"
+        speed = calculateSpeed(size, start, end, transfer_speed) if end else "-"
         status_text = "" if not error else f"Fehler: {error}"
         status_icon = "success.png" if error is None else "error.png"
         size_display = f"{size / 1024 / 1024 / 1024:.2f} GB" if size >= 1024 * 1024 * 1024 else f"{size / 1024 / 1024:.2f} MB"
+        target_folder_size_display = f"{target_folder_size / 1024 / 1024 / 1024:.2f} GB" if target_folder_size >= 1024 * 1024 * 1024 else f"{target_folder_size / 1024 / 1024:.2f} MB"
 
         html_content += f"""
             <tr>
@@ -51,6 +53,7 @@ def generateHtml(job):
                 <td>{duration}</td>
                 <td>{file_count}</td>
                 <td>{size_display}</td>
+                <td>{target_folder_size_display}</td>
                 <td>{speed}</td>
                 <td><img src='{status_icon}' class="status-icon" alt='Status'> {status_text}</td>
             </tr>
@@ -67,19 +70,21 @@ def generateHtml(job):
                 <th>Endzeit</th>
                 <th>Dauer</th>
                 <th>Dateien</th>
-                <th>Verarbeitete Daten</th>
+                <th>Total transferred file size</th>
+                <th>Total File Size</th>
                 <th>Geschwindigkeit</th>
                 <th>Status</th>
             </tr>
     """
 
     for job in recent_jobs:
-        job_id, name, job_type, start, end, file_count, size, error = job
+        job_id, name, job_type, start, end, file_count, size, target_folder_size, transfer_speed, error = job
         duration = formatDuration(start, end)
-        speed = calculateSpeed(size, start, end)
+        speed = calculateSpeed(size, start, end, transfer_speed) if end else "-"
         status_text = "" if not error else f"Fehler: {error}"
         status_icon = "success.png" if error is None else "error.png"
         size_display = f"{size / 1024 / 1024 / 1024:.2f} GB" if size >= 1024 * 1024 * 1024 else f"{size / 1024 / 1024:.2f} MB"
+        target_folder_size_display = f"{target_folder_size / 1024 / 1024 / 1024:.2f} GB" if target_folder_size >= 1024 * 1024 * 1024 else f"{target_folder_size / 1024 / 1024:.2f} MB"
 
         html_content += f"""
             <tr>
@@ -90,6 +95,7 @@ def generateHtml(job):
                 <td>{duration}</td>
                 <td>{file_count}</td>
                 <td>{size_display}</td>
+                <td>{target_folder_size_display}</td>
                 <td>{speed}</td>
                 <td><img src='{status_icon}' class="status-icon" alt='Status'> {status_text}</td>
             </tr>
@@ -106,12 +112,15 @@ def generateHtml(job):
 
     outputPrint(f"HTML-Datei wurde erfolgreich erstellt: {html_file}")
 
-def calculateSpeed(size, start, end):
+def calculateSpeed(size, start, end, transfer_speed):
     try:
-        start_dt = datetime.strptime(start, "%Y-%m-%d %H:%M:%S")
-        end_dt = datetime.strptime(end, "%Y-%m-%d %H:%M:%S")
-        duration = (end_dt - start_dt).total_seconds()
-        return f"{(size / duration / 1024 / 1024):.2f} MB/s" if duration > 0 else "-"
+        if transfer_speed == 0:
+            start_dt = datetime.strptime(start, "%Y-%m-%d %H:%M:%S")
+            end_dt = datetime.strptime(end, "%Y-%m-%d %H:%M:%S")
+            duration = (end_dt - start_dt).total_seconds()
+            return f"{(size / duration / 1024 / 1024):.2f} MB/s" if duration > 0 else "-"
+        else:
+            return f"{(transfer_speed / 1024 / 1024):.2f} MB/s"
     except:
         return "-"
 
