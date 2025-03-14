@@ -28,7 +28,7 @@ def generateHtml(job):
                 <th>Endzeit</th>
                 <th>Dauer</th>
                 <th>Dateien</th>
-                <th>Größe</th>
+                <th>Verarbeitete Daten</th>
                 <th>Geschwindigkeit</th>
                 <th>Status</th>
             </tr>
@@ -67,7 +67,7 @@ def generateHtml(job):
                 <th>Endzeit</th>
                 <th>Dauer</th>
                 <th>Dateien</th>
-                <th>Größe</th>
+                <th>Verarbeitete Daten</th>
                 <th>Geschwindigkeit</th>
                 <th>Status</th>
             </tr>

@@ -1,0 +1,13 @@
+[MAIN]
+type = mail
+active = true
+
+[SMTP]
+Server =
+Port =
+User =
+Password =
+
+[MAIL]
+Sender =
+Recipient =

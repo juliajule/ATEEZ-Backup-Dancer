@@ -4,14 +4,16 @@ from src.SimpleRsyncHandler import *
 from src.CpHandler import *
 from src.SftpHandler import *
 from src.JobReportHandler import *
+from src.MailHandler import *
 
 version = 0.1
 
 configCheck()
 logLevel = getConfig("DEFAULT", "logLevel") or "1"
 debugLevel = getConfig("DEFAULT", "debug") or "0"
-Level(logLevel, debugLevel)
-debugPrint(f"Log level: {logLevel} -- Debug level: {debugLevel}")
+fileLogging = getConfig("DEFAULT", "fileLogging") or "0"
+Level(logLevel, debugLevel, fileLogging)
+debugPrint(f"Log level: {logLevel} -- Debug level: {debugLevel} -- File logging: {fileLogging}")
 
 #####
 outputPrint(f"Welcome to ATEEZ Backup Dancer {version}")
@@ -31,7 +33,7 @@ jobCounter = 1
 for job in jobs:
     outputPrint(f"Start Job {jobCounter} ({job})")
     jobType = getJobInfo(job, "MAIN", "type")
-    jobActive = str_to_bool(getJobInfo(job, "MAIN", "active"))
+    jobActive = stringToBool(getJobInfo(job, "MAIN", "active"))
     outputPrint(f" Job Type:     {jobType}")
     if jobType == "rsync" and jobActive:
         rsyncJob(job)
@@ -50,6 +52,8 @@ for job in jobs:
         debugPrint(f"cp job is not activated in Job-File {job}")
     if jobType == "jobReport":
         generateHtml(job)
+    if jobType == "mail" and jobActive:
+        mailJob(job)
     jobCounter += 1
     outputPrint("\n----")
 
