@@ -1,0 +1,9 @@
+[MAIN]
+type = snapshot
+active = true
+Hard-Limit = 30
+Soft-Limit = 7
+Compression-Level = 9
+Zip-Password =
+destination = ordner
+source = ordner

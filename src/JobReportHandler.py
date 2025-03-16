@@ -128,7 +128,10 @@ def formatDuration(start, end):
     if not end:
         return "-"
 
-    duration_seconds = (datetime.strptime(end, "%Y-%m-%d %H:%M:%S") - datetime.strptime(start, "%Y-%m-%d %H:%M:%S")).total_seconds()
+    duration_seconds = (
+            datetime.strptime(end.split(".")[0], "%Y-%m-%d %H:%M:%S") -
+            datetime.strptime(start.split(".")[0], "%Y-%m-%d %H:%M:%S")
+    ).total_seconds()
 
     hours = int(duration_seconds // 3600)
     minutes = int((duration_seconds % 3600) // 60)

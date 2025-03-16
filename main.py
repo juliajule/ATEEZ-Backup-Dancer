@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-from src.SimpleRsyncHandler import *
+from src.RsyncHandler import *
 from src.CpHandler import *
 from src.SftpHandler import *
 from src.MailHandler import *
+from src.SnapshotHandler import *
 
 version = 0.1
 
@@ -34,6 +35,11 @@ for job in jobs:
     jobType = getJobInfo(job, "MAIN", "type")
     jobActive = stringToBool(getJobInfo(job, "MAIN", "active"))
     outputPrint(f" Job Type:     {jobType}")
+    if jobType == "snapshot" and jobActive:
+        snapshotJob(job)
+    if jobType == "snapshot" and not jobActive:
+        outputPrint("Skipping snapshot Job")
+        debugPrint(f"Snapshot job is not activated in Job-File {job}")
     if jobType == "rsync" and jobActive:
         rsyncJob(job)
     if jobType == "rsync" and not jobActive:

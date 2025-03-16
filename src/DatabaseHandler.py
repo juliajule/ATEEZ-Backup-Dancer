@@ -42,3 +42,13 @@ def getAllJobs(limit=20):
     conn.close()
 
     return todays_jobs, past_jobs
+
+def getLastSnapshot():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT end_time FROM job_logs WHERE job_type = 'snapshot' ORDER BY end_time DESC LIMIT 1
+    """)
+    last_snapshot = cursor.fetchone()
+    conn.close()
+    return datetime.fromisoformat(last_snapshot[0]) if last_snapshot else None
