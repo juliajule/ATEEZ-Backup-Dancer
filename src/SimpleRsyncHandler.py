@@ -30,6 +30,7 @@ def rsyncJob(job):
     jobDestinationPort = getJobInfo(job, "DESTINATION", "Port")
     jobDestionationPath = getJobInfo(job, "DESTINATION", "Path")
 
+# Port mitnehmen + exlude folder
     #Logic Checks
     jobStandardArguments = validateJobConfig(jobDeleteOnDestination, jobStandardArguments, jobSourceRemote, jobDestinationRemote, jobSourceHostname, jobSourceUser, jobDestinationHostname, jobDestinationUser)
 
@@ -47,11 +48,13 @@ def rsyncJob(job):
 
     if jobSourceHostname and jobSourceRemote:
         source = f"{jobSourceUser}@{jobSourceHostname}:{jobSourcePath}"
-        rsyncLine += [source, jobDestionationPath]
+        port = f"ssh -p {jobSourcePort}"
+        rsyncLine += ["-e", port, source, jobDestionationPath]
 
     if jobDestinationHostname and jobDestinationRemote:
         destination = f"{jobDestinationUser}@{jobDestinationHostname}:{jobDestionationPath}"
-        rsyncLine += [jobSourcePath, destination]
+        port = f"ssh -p {jobDestinationPort}"
+        rsyncLine += ["-e", port, jobSourcePath, destination]
 
     if not (jobSourceRemote or jobDestinationRemote):
         rsyncLine += [jobSourcePath, jobDestionationPath]
@@ -71,7 +74,7 @@ def rsyncJob(job):
     copied_files = 0
     total_size = 0
     target_folder_size = 0
-    transfer_speed = 18888
+    transfer_speed = 0
 
     for line in process.stdout:
         outputPrint(line.strip())

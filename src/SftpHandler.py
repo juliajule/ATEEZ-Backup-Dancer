@@ -97,7 +97,10 @@ def sftpJob(job):
 
     copied_files = max(0, files_after - files_before)
 
-    target_folder_size = getFolderSize(jobDestinationPath) or 0
+    if jobDestinationRemote:
+        target_folder_size = getFolderSize(jobDestinationPath, jobDestinationRemote, jobDestinationUser, jobDestinationHostname) or 0
+    else:
+        target_folder_size = getFolderSize(jobDestinationPath) or 0
 
     end_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 

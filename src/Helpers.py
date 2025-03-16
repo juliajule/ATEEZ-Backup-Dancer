@@ -100,7 +100,7 @@ def getFolderSize(path, remote=False, ssh_user=None, ssh_host=None):
 
         result = subprocess.run(cmd, capture_output=True, text=True)
 
-        return int(result.stdout.split()[0])*1000 if result.stdout.strip().isdigit() else 0
+        return int(result.stdout.split()[0])*1000
     except Exception as e:
         outputPrint(f"Fehler beim Ermitteln der Ordnergröße: {e}")
         return 0

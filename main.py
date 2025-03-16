@@ -61,5 +61,3 @@ for job in jobs:
         debugPrint(f"mail job is not activated in Job-File {job}")
     jobCounter += 1
     outputPrint("\n----")
-
-
