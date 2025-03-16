@@ -28,7 +28,6 @@ def cpJob(job):
 
     copied_files = 0
     total_size = 0
-    target_folder_size = 0
     transfer_speed = 0
 
     for root, _, files in os.walk(jobSource):
@@ -62,6 +61,8 @@ def cpJob(job):
             copied_files += 1
             total_size += os.path.getsize(src_file)
             outputPrint(f"Kopiert: {src_file} → {dest_file}")
+
+    target_folder_size = getFolderSize(jobDestination) or 0
 
     end_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 

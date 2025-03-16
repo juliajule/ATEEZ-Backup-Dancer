@@ -1,6 +1,7 @@
 import datetime
 import gzip
 import shutil
+import subprocess
 from src.ConfigHandler import *
 
 def Level(logLvl, debugLvl, fileLogging):
@@ -64,7 +65,6 @@ def daysSinceCreation(file_path):
 
 def outputPrint(message):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    #formatted_message = f"[{timestamp}] -- \033[1;37m{message}\033[0m"
     formatted_message = f"[{timestamp}] -- {message}"
 
     if logLevel >= "1":
@@ -90,3 +90,17 @@ def exitOnError(message):
 
 def stringToBool(s):
     return s.strip().lower() == "true"
+
+def getFolderSize(path, remote=False, ssh_user=None, ssh_host=None):
+    try:
+        if remote:
+            cmd = ["ssh", f"{ssh_user}@{ssh_host}", f'du -s "{path}"']
+        else:
+            cmd = ["du", "-s", path]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        return int(result.stdout.split()[0])*1000 if result.stdout.strip().isdigit() else 0
+    except Exception as e:
+        outputPrint(f"Fehler beim Ermitteln der Ordnergröße: {e}")
+        return 0

@@ -88,9 +88,9 @@ def rsyncJob(job):
         if match_files:
             target_folder_size = int(match_files.group(1))
 
-        match_files = re.search(r"sent \s+(\d+) bytes  received \s+(\d+) bytes  \s+(\d+) bytes/sec", line)
-        if match_files:
-            transfer_speed = int(match_files.group(3))
+        match_speed = re.search(r"([\d,.]+) bytes/sec", line)
+        if match_speed:
+            transfer_speed = float(match_speed.group(1).replace(",", ""))
 
     process.stdout.close()
     returncode = process.wait()
