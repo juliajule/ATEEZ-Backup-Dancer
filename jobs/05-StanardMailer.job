@@ -1,13 +1,25 @@
-[MAIN]
+[JOB_SETTINGS]
+# Defines the job type.
 type = mail
+
+# Determines whether the job is active.
+# Set to false to disable this job without deleting it.
 active = true
 
-[SMTP]
-Server =
-Port =
-User =
-Password =
+[SMTP_SETTINGS]
+# SMTP server address for sending emails.
+server = name
 
-[MAIL]
-Sender =
-Recipient =
+# Port number for SMTP.
+port = 587
+
+# SMTP login credentials (username & password).
+user = name
+password = password
+
+[EMAIL_DETAILS]
+# Email address of the sender.
+sender = mail address
+
+# Recipient email address.
+recipient = mail address

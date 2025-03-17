@@ -1,0 +1,20 @@
+[JOB_SETTINGS]
+# Defines the job type.
+type = cp
+
+# Determines whether the job is active.
+# Set to false to disable this job without deleting it.
+active = true
+
+[COPY_OPTIONS]
+# Defines the behavior when a file with the same name already exists.
+# Possible values: skip (ignore duplicates), overwrite (replace file), backup (keep both versions).
+; onDuplicate = overwrite
+
+[SOURCE]
+# Path to the source directory or file.
+path = destination
+
+[DESTINATION]
+# Path to the destination directory.
+path = destination

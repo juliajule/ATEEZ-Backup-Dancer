@@ -1,7 +1,0 @@
-[MAIN]
-type = cp
-active = false
-source = path
-destination = path
-onDuplicate = overwrite
-# Optionen: skip, overwrite, backup

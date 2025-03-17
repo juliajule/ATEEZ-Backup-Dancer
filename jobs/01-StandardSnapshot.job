@@ -1,9 +1,30 @@
-[MAIN]
+[JOB_SETTINGS]
+# Defines the job type.
 type = snapshot
+
+# Determines whether the job is active.
+# Set to false to disable this job without deleting it.
 active = true
-Hard-Limit = 30
-Soft-Limit = 7
-Compression-Level = 9
-Zip-Password =
-destination = ordner
-source = ordner
+
+[SNAPSHOT_SETTINGS]
+# Maximum age (in days) of the oldest snapshot file before it gets deleted.
+hardLimit = 30
+
+# Minimum age (in days) of the newest snapshot file before a new one is created.
+softLimit = 7
+
+# Compression level for 7-Zip.
+# 1 = Fastest (lowest compression), 9 = Slowest (highest compression).
+; compressionLevel = 5
+
+# Optional password for the compressed snapshot.
+# Leave empty for no password protection.
+; zipPassword =
+
+[SOURCE]
+# Source directory to be backed up.
+source = directory
+
+[DESTINATION]
+# Destination directory where the snapshot will be stored.
+destination = directory

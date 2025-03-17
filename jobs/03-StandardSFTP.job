@@ -1,0 +1,31 @@
+[JOB_SETTINGS]
+# Defines the job type.
+type = sftp
+
+# Determines whether the job is active.
+# Set to false to disable this job without deleting it.
+active = true
+
+[SOURCE]
+# Define whether the source is remote (true) or local (false).
+; remote = false
+
+# Only required if remote = true
+; hostname = name
+; user = user
+; port = 22
+
+# Path to the source directory or files.
+path = directory
+
+[DESTINATION]
+# Define whether the destination is remote (true) or local (false).
+; remote = false
+
+# Only required if remote = true
+; hostname = name
+; user = user
+; port = 22
+
+# Path to the destination directory.
+path = directory

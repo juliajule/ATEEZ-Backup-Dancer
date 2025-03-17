@@ -1,0 +1,13 @@
+[JOB_SETTINGS]
+# Defines the job type. Possible values: snapshot, rsync, sftp, cp, mail, jobReport
+type = jobReport
+
+# Determines whether the job is active.
+# Set to false to disable this job without deleting it.
+active = true
+
+[OUTPUT]
+# Please copy all documents from the folder HTMLDocuments to the target folder yourself.
+# Target path where the generated HTML report will be saved.
+# The filename should typically be 'index.html'.
+path = directory/index.html
