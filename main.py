@@ -8,62 +8,64 @@ from src.SnapshotHandler import *
 
 version = 0.1
 
-configCheck()
-logLevel = getConfig("DEFAULT", "logLevel") or "1"
-debugLevel = getConfig("DEFAULT", "debug") or "0"
-fileLogging = getConfig("DEFAULT", "fileLogging") or "0"
-Level(logLevel, debugLevel, fileLogging)
-debugPrint(f"Log level: {logLevel} -- Debug level: {debugLevel} -- File logging: {fileLogging}")
+# Initialize configuration
+config_check()
+log_level = get_config("LOGGING", "logLevel") or "1"
+debug_level = get_config("LOGGING", "debugLevel") or "0"
+file_logging = get_config("LOGGING", "fileLogging") or "0"
 
-#####
-outputPrint(f"Welcome to ATEEZ Backup Dancer {version}")
-outputPrint("Startet successfully")
-outputPrint("\n----")
-#######
+# Set logging levels
+initialize_logging(log_level, debug_level, file_logging)
+debug_print("Config file found")
+debug_print(f"Log level: {log_level} -- Debug level: {debug_level} -- File logging: {file_logging}")
 
-# Getting all Job Files
-jobs = getJobList() or debugPrint(f"Jobs directory does not exist or has no valid .job Files") & exit(0)
-outputPrint(f"Found {len(jobs)} jobs:")
+# Welcome message
+output_print(f"Welcome to ATEEZ Backup Dancer {version}")
+output_print("Startet successfully")
+output_print("\n----")
+
+# Get all job files
+jobs = get_job_list() or debug_print(f"Jobs directory does not exist or has no valid .job Files") & exit(0)
+output_print(f"Found {len(jobs)} jobs:")
 for job in jobs:
-    outputPrint(f"{job}")
-outputPrint("\n----")
+    output_print(f"{job}")
+output_print("\n----")
 
-# Loop for all Jobs
-jobCounter = 1
-for job in jobs:
-    outputPrint(f"Start Job {jobCounter} ({job})")
-    jobType = getJobInfo(job, "MAIN", "type")
-    jobActive = stringToBool(getJobInfo(job, "MAIN", "active"))
-    outputPrint(f" Job Type:     {jobType}")
-    if jobType == "snapshot" and jobActive:
-        snapshotJob(job)
-    if jobType == "snapshot" and not jobActive:
-        outputPrint("Skipping snapshot Job")
-        debugPrint(f"Snapshot job is not activated in Job-File {job}")
-    if jobType == "rsync" and jobActive:
-        rsyncJob(job)
-    if jobType == "rsync" and not jobActive:
-        outputPrint("Skipping rsync job")
-        debugPrint(f"rsync job is not activated in Job-File {job}")
-    if jobType == "sftp" and jobActive:
-        sftpJob(job)
-    if jobType == "sftp" and not jobActive:
-        outputPrint("Skipping sftp job")
-        debugPrint(f"sftp job is not activated in Job-File {job}")
-    if jobType == "cp" and jobActive:
-        cpJob(job)
-    if jobType == "cp" and not jobActive:
-        outputPrint("Skipping cp job")
-        debugPrint(f"cp job is not activated in Job-File {job}")
-    if jobType == "jobReport" and jobActive:
-        generateHtml(job)
-    if jobType == "jobReport" and not jobActive:
-        outputPrint("Skipping cp job")
-        debugPrint(f"cp job is not activated in Job-File {job}")
-    if jobType == "mail" and jobActive:
-        mailJob(job)
-    if jobType == "mail" and not jobActive:
-        outputPrint("Skipping mail job")
-        debugPrint(f"mail job is not activated in Job-File {job}")
-    jobCounter += 1
-    outputPrint("\n----")
+# Process all jobs
+for job_counter, job in enumerate(jobs, start=1):
+    output_print(f"Start Job {job_counter} ({job})")
+
+    job_type = get_job_info(job, "JOB_SETTINGS", "type")
+    job_active = string_to_bool(get_job_info(job, "JOB_SETTINGS", "active"))
+
+    output_print(f" Job Type:     {job_type}")
+
+    if not job_active:
+        output_print(f"Skipping {job_type} job")
+        debug_print(f"{job_type} job is not activated in job file: {job}")
+        output_print("\n----")
+        continue
+
+    # Execute job based on type
+    job_functions = {
+        "snapshot": snapshot_job,
+        "rsync": rsync_job,
+        "sftp": sftp_job,
+        "cp": cp_job,
+        "jobReport": generate_html,
+        "mail": mail_job
+    }
+
+    if job_type in job_functions:
+        job_functions[job_type](job)
+    else:
+        output_print(f"Unknown job type: {job_type}")
+        debug_print(f"Skipping unknown job type in job file: {job}")
+
+    output_print("\n----")
+
+output_print("All done! Hopefully everything went well.")
+output_print("Have a nice day, see you next time.")
+output_print("And stream ATEEZ!")
+
+rotate_logs()

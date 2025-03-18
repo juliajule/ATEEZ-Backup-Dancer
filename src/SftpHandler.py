@@ -1,64 +1,67 @@
 from src.BackUpHelper import *
 from src.Helpers import *
 from src.ConfigHandler import *
-from src.DatabaseHandler import insertJobLog
+from src.DatabaseHandler import insert_job_log
 import subprocess
 from io import StringIO
 import re
 import datetime
 
-def sftpJob(job):
+def sftp_job(job):
+    """
+    Handles an SFTP job using SCP for file transfers.
+    """
     start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    sftp = getConfig("REQUIREMENT", "sftp")
-    debugPrint(f"sftp: {sftp}")
-    checkPathValid(sftp) or exitOnError("sftp Path in Config does not exist")
+    # Retrieve SFTP binary path from config
+    sftp = get_config("DEPENDENCIES", "sftp")
+    debug_print(f"SFTP path: {sftp}")
+    check_path_valid(sftp) or exit_on_error("SFTP path in config does not exist")
 
-    jobSourceRemote = stringToBool(getJobInfo(job, "SOURCE", "remote"))
-    jobSourceHostname = getJobInfo(job, "SOURCE", "Hostname")
-    jobSourceUser = getJobInfo(job, "SOURCE", "user")
-    jobSourcePort = getJobInfo(job, "SOURCE", "Port")
-    jobSourcePath = getJobInfo(job, "SOURCE", "Path")
-    jobDestinationRemote = stringToBool(getJobInfo(job, "DESTINATION", "remote"))
-    jobDestinationHostname = getJobInfo(job, "DESTINATION", "Hostname")
-    jobDestinationUser = getJobInfo(job, "DESTINATION", "user")
-    jobDestinationPort = getJobInfo(job, "DESTINATION", "Port")
-    jobDestinationPath = getJobInfo(job, "DESTINATION", "Path")
+    # Source details
+    source_remote = string_to_bool(get_job_info(job, "SOURCE", "remote")) or False
+    source_hostname = get_job_info(job, "SOURCE", "hostname")
+    source_user = get_job_info(job, "SOURCE", "user")
+    source_port = get_job_info(job, "SOURCE", "port") or "22"
+    source_path = get_job_info(job, "SOURCE", "path")
 
-    if jobSourceRemote and jobDestinationRemote:
-        outputPrint("Error: Both SOURCE and DESTINATION are remote, which is not supported.")
+    # Destination details
+    destination_remote = string_to_bool(get_job_info(job, "DESTINATION", "remote")) or False
+    destination_hostname = get_job_info(job, "DESTINATION", "hostname")
+    destination_user = get_job_info(job, "DESTINATION", "user")
+    destination_port = get_job_info(job, "DESTINATION", "port") or "22"
+    destination_path = get_job_info(job, "DESTINATION", "path")
+
+    # Check for unsupported configurations
+    if source_remote and destination_remote:
+        output_print("Error: Both SOURCE and DESTINATION are remote, which is not supported.")
+        return
+    if not source_remote and not destination_remote:
+        output_print("Error: Both SOURCE and DESTINATION are remote, which is not supported.")
         return
 
-    files_before = countFiles(jobDestinationPath, remote=jobDestinationRemote,
-                               ssh_user=jobDestinationUser, ssh_host=jobDestinationHostname)
-    scpLine = ["scp", "-r", "-v"]
+    files_before = count_files(destination_path, destination_remote, destination_user, destination_hostname)
 
-    if jobSourceRemote:
-        scpLine += ["-P", jobSourcePort]
-    elif jobDestinationRemote:
-        scpLine += ["-P", jobDestinationPort]
+    # Construct SCP command
+    scp_line = ["scp", "-r", "-v"]
 
-    if jobSourceRemote:
-        source = f"{jobSourceUser}@{jobSourceHostname}:{jobSourcePath}"
-    else:
-        source = jobSourcePath
+    if source_remote:
+        scp_line += ["-P", source_port]
+    elif destination_remote:
+        scp_line += ["-P", destination_port]
 
-    if jobDestinationRemote:
-        destination = f"{jobDestinationUser}@{jobDestinationHostname}:{jobDestinationPath}"
-    else:
-        destination = jobDestinationPath
+    source = f"{source_user}@{source_hostname}:{source_path}" if source_remote else source_path
+    destination = f"{destination_user}@{destination_hostname}:{destination_path}" if destination_remote else destination_path
 
-    scpLine += [source, destination]
-
-    outputPrint(f"Running: {' '.join(scpLine)}")
+    scp_line += [source, destination]
+    output_print(f"Executing command: {' '.join(scp_line)}")
 
     full_output = StringIO()
-    copied_files = 0
-    total_size = 0
-    transfer_speed = 0
+    copied_files, total_size, transfer_speed = 0, 0, 0
 
+    # Execute SCP command
     process = subprocess.Popen(
-        scpLine,
+        scp_line,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
@@ -68,52 +71,57 @@ def sftpJob(job):
     for line in process.stderr:
         if not line.strip():
             continue
-        if "debug1" in line:
+        if "debug1" in line: # Ignore SSH debug messages
             continue
 
-        outputPrint(line.strip())
+        output_print(line.strip())
         full_output.write(line)
 
+        # Count transferred files
         if re.search(r"100%\s+\d+\s+\S+/\S+", line):
             copied_files += 1
 
+        # Extract transferred bytes
         size_match = re.search(r"Transferred: sent (\d+), received (\d+) bytes", line)
         if size_match:
             sent_bytes = int(size_match.group(1))
             received_bytes = int(size_match.group(2))
-            total_size = sent_bytes if jobSourceRemote else received_bytes
+            total_size = sent_bytes if source_remote else received_bytes
 
+        # Extract transfer speed
         speed_match = re.search(r"Bytes per second: sent ([\d.]+), received ([\d.]+)", line)
         if speed_match:
             sent_speed = float(speed_match.group(1))
             received_speed = float(speed_match.group(2))
-            transfer_speed = sent_speed if jobSourceRemote else received_speed  # Wähle je nach Richtung
+            transfer_speed = sent_speed if source_remote else received_speed
 
     process.stdout.close()
     returncode = process.wait()
 
-    files_after = countFiles(jobDestinationPath, remote=jobDestinationRemote,
-                              ssh_user=jobDestinationUser, ssh_host=jobDestinationHostname)
-
+    # Count files after transfer
+    files_after = count_files(destination_path, destination_remote, destination_user, destination_hostname)
     copied_files = max(0, files_after - files_before)
 
-    if jobDestinationRemote:
-        target_folder_size = getFolderSize(jobDestinationPath, jobDestinationRemote, jobDestinationUser, jobDestinationHostname) or 0
-    else:
-        target_folder_size = getFolderSize(jobDestinationPath) or 0
+    # Get destination folder size
+    target_folder_size = get_folder_size(destination_path, destination_remote, destination_user, destination_hostname) if destination_remote else get_folder_size(destination_path)
+    target_folder_size = target_folder_size or 0
 
     end_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     if returncode == 0:
-        outputPrint("SFTP (via SCP) succeeded.")
+        output_print("SFTP (via SCP) completed successfully.")
         error_message = None
     else:
-        error_message = f"Error with Code {returncode}."
-        outputPrint(error_message)
+        error_message = f"SFTP job failed with exit code {returncode}."
+        output_print(error_message)
 
-    insertJobLog(job, "sftp", start_time, end_time, copied_files, total_size, target_folder_size, transfer_speed, error_message)
+    # Log job in database
+    insert_job_log(job, "sftp", start_time, end_time, copied_files, total_size, target_folder_size, transfer_speed, error_message)
 
-def countFiles(path, remote=False, ssh_user=None, ssh_host=None):
+def count_files(path, remote=False, ssh_user=None, ssh_host=None):
+    """
+    Counts the number of files in a directory, locally or remotely via SSH.
+    """
     try:
         if remote:
             cmd = ["ssh", f"{ssh_user}@{ssh_host}", f'find "{path}" -type f | wc -l']
@@ -124,5 +132,5 @@ def countFiles(path, remote=False, ssh_user=None, ssh_host=None):
 
         return int(result.stdout.strip()) if result.stdout.strip().isdigit() else 0
     except Exception as e:
-        outputPrint(f"Fehler beim Zählen der Dateien: {e}")
+        output_print(f"Error counting files: {e}")
         return 0

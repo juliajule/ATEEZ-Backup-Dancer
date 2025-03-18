@@ -1,10 +1,17 @@
 import sqlite3
 import os
 from datetime import datetime
+from src.Helpers import debug_print
 
+# Define the database path
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "jobs.db")
 
-def insertJobLog(job_name, job_type, start_time, end_time, files_copied, total_size, target_folder_size, transfer_speed, errors):
+def insert_job_log(job_name, job_type, start_time, end_time, files_copied, total_size, target_folder_size, transfer_speed, errors):
+    """
+    Inserts a new job log entry into the database.
+    """
+    debug_print(f"Inserting job log: {job_name} ({job_type}) - {start_time} to {end_time}")
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -15,12 +22,18 @@ def insertJobLog(job_name, job_type, start_time, end_time, files_copied, total_s
 
     conn.commit()
     conn.close()
+    debug_print("Job log successfully inserted.")
 
-def getAllJobs(limit=20):
+
+def get_all_jobs(limit=20):
+    """
+    Retrieves today's jobs and the last 'limit' number of past jobs from the database.
+    """
+    today = datetime.now().strftime("%Y-%m-%d")
+    debug_print(f"Fetching job logs for {today} and last {limit} past jobs")
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-
-    today = datetime.now().strftime("%Y-%m-%d")
 
     cursor.execute("""
         SELECT id, job_name, job_type, start_time, end_time, files_copied, total_size, target_folder_size, transfer_speed, errors
@@ -40,10 +53,15 @@ def getAllJobs(limit=20):
     past_jobs = cursor.fetchall()
 
     conn.close()
+    debug_print(f"Retrieved {len(todays_jobs)} jobs for today and {len(past_jobs)} past jobs.")
 
     return todays_jobs, past_jobs
 
-def getLastSnapshot():
+def get_last_snapshot():
+    """
+    Retrieves the end time of the last recorded snapshot job.
+    """
+    debug_print("Fetching last snapshot job.")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
@@ -51,4 +69,10 @@ def getLastSnapshot():
     """)
     last_snapshot = cursor.fetchone()
     conn.close()
-    return datetime.fromisoformat(last_snapshot[0]) if last_snapshot else None
+
+    if last_snapshot:
+        debug_print(f"Last snapshot job found: {last_snapshot[0]}")
+        return datetime.fromisoformat(last_snapshot[0])
+    else:
+        debug_print("No snapshot job found.")
+        return None
