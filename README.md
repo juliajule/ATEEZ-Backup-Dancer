@@ -1,6 +1,6 @@
 # ATEEZ-Backup-Dancer
 
-## Backup Automation System
+## Backup Automation Script
 ## Overview
 This project is a fully automated backup system that allows you to configure and execute various backup jobs, including file synchronization, snapshot creation, and reporting. The system logs job execution details, generates reports in HTML format, and optionally sends summary emails.
 
