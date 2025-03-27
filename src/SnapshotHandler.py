@@ -22,6 +22,7 @@ def snapshot_job(job):
     hard_limit = int(get_job_info(job, "SNAPSHOT_SETTINGS", "hardLimit"))
     soft_limit = int(get_job_info(job, "SNAPSHOT_SETTINGS", "softLimit"))
     compression_level = get_job_info(job, "SNAPSHOT_SETTINGS", "compressionLevel") or "5"
+    cores = get_job_info(job, "SNAPSHOT_SETTINGS", "cores") or "1"
     password = get_job_info(job, "SNAPSHOT_SETTINGS", "zipPassword") or "None"
     source_path = get_job_info(job, "SOURCE", "source")
     destination_path = get_job_info(job, "DESTINATION", "destination")
@@ -48,6 +49,10 @@ def snapshot_job(job):
     command = ["7z", "a", snapshot_path, source_path, f"-mx={compression_level}"]
     if password != "None":
         command += [f"-p{password}"]
+    if cores.lower() != "all":
+        command += [f"-mmt={cores}"]
+    if cores.lower() == "all":
+        command += [f"-mmt"]
     debug_print(f"Generated 7-Zip command: {' '.join(command)}")
 
     # Execute snapshot creation

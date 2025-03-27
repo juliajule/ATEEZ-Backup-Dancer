@@ -20,6 +20,7 @@ debug_print("Config file found")
 debug_print(f"Log level: {log_level} -- Debug level: {debug_level} -- File logging: {file_logging}")
 
 # Welcome message
+print(f"\n")
 output_print(f"Welcome to ATEEZ Backup Dancer {version}")
 output_print("Startet successfully")
 output_print("\n----")

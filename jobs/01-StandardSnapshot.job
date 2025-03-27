@@ -17,6 +17,10 @@ softLimit = 7
 # 1 = Fastest (lowest compression), 9 = Slowest (highest compression).
 ; compressionLevel = 5
 
+# The number of cores to be used for zipping must be determined here.
+# Allowed are numbers or 'all' to use all cores
+; cores = 1
+
 # Optional password for the compressed snapshot.
 # Leave empty for no password protection.
 ; zipPassword =
